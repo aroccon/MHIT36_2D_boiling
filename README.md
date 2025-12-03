@@ -1,12 +1,47 @@
-## Multiphase Rayleigh-Benard 
-Code for phase-field simulations in Rayleigh-Bénard configuration (2D).
-Numerical scheme: Finite difference-based (FD2)
-
-#Time integration
+## 2D version of MHIT36
+Version of MHIT36 simpliefied to work in 2D (single GPU version)
+Numerical scheme: Finite difference-based (FD2).
+Time integration:
 - Temperature: SSP-RK3 + CN for Temperature along y (flag)
 - Navier-Stokes: RK3
 - Phase-field: RK3 (to be implemented)
 - NS: Fractional method, Poisson solver based on FFT (along x - periodic) + TDMA (y, walls).
+
+
+~~~text
+███    ███ ██   ██ ██ ████████ ██████   ██████       
+████  ████ ██   ██ ██    ██         ██ ██              
+██ ████ ██ ███████ ██    ██     █████  ███████   
+██  ██  ██ ██   ██ ██    ██         ██ ██    ██     
+██      ██ ██   ██ ██    ██    ██████   ██████        
+~~~
+
+
+If you use this code, please cite the following works: 
+```bibtex
+  @article{roccon2025,
+  title   = {MHIT36: A Phase-Field Code for Gpu Simulations of Multiphase Homogeneous Isotropic Turbulence},
+  author  = {Roccon, A. and Enzenberger, L. and Zaza, D. and Soldati, A.},
+  journal = {Computer Physics Communications},
+  year    = {2025},
+  volume  = {314},
+  issue   = {109804},
+  doi     = {https://doi.org/10.1016/j.cpc.2025.109804}
+}
+```
+
+```bibtex
+  @article{roccon2026,
+  title   = {MHIT36: Extension to wall-bounded turbulence and scalar transport equation},
+  author  = {Roccon, A.},
+  journal = {Computer Physics Communications},
+  year    = {2026},
+  volume  = {---},
+  issue   = {109956},
+  doi     = {https://doi.org/10.1016/j.cpc.2025.109956}
+}
+```
+
 
 
 
