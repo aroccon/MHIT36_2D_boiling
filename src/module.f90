@@ -6,7 +6,7 @@ module param
   double precision :: umax=0.0d0, vmax=0.d0, val, lambda
   double precision :: chempot, curv, sigma, cflx, cfly, ra, pr, nut, nub, num, noise, enum
   double precision :: pos, epsr, times, timef, difftemp, h11, h12, h21, h22, rhoi, alphag
-  double precision :: ttop, tbot
+  double precision :: ttop, tbot, vaprate
   integer :: tstart, tfin, restart, dump, icphi
 end module param
 
@@ -17,7 +17,7 @@ module velocity
 end module velocity
 
 module phase
-    double precision, allocatable :: rhsphi(:,:), phi(:,:), psidi(:,:), normx(:,:), normy(:,:), fxst(:,:), fyst(:,:)
+    double precision, allocatable :: rhsphi(:,:), phi(:,:), psidi(:,:), normx(:,:), normy(:,:), fxst(:,:), fyst(:,:), melt(:,:)
 end module phase
 
 module temperature

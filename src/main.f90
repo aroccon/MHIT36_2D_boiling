@@ -56,6 +56,7 @@ allocate(af(nx,0:ny+1),bf(nx,0:ny+1),cf(nx,0:ny+1),df(nx,0:ny+1),solf(nx,0:ny+1)
 allocate(phi(nx,0:ny+1),rhsphi(nx,0:ny+1),psidi(nx,0:ny+1))
 allocate(normx(nx,0:ny+1),normy(nx,0:ny+1))
 allocate(fxst(nx,ny),fyst(nx,ny))
+allocate(melt(nx,ny))
 
 ! temperature variables (defined on centers)
 allocate(temp(nx,0:ny+1),rhstemp(nx,0:ny+1),rhstemp_o(nx,0:ny+1))
@@ -212,6 +213,13 @@ do t=tstart,tfin
                                      (0.25d0*(1.d0-(tanh(0.5d0*psidi(i,jp)*epsi))**2)*normy(i,jp) - 0.25d0*(1.d0-(tanh(0.5d0*psidi(i,jm)*epsi))**2)*normy(i,jm))*0.5d0*dyi) 
     enddo
   enddo
+  ! boiling term
+  do i=1,nx
+    do j=1:ny
+        melt(i,j) = phi(i,j)*(1-phi(i,j))/eps*vaprate*rhov;
+        rhsphi(i,j)= rhsphi(i,j) + melt(i,j)/rhov/rhov;
+    enddo
+  enddo
 
   ! phase-field n+1 (Euler explicit)
   do j=1,ny
@@ -311,26 +319,16 @@ do t=tstart,tfin
         rhsu(i,j)=-(h11+h12)
         rhsv(i,j)=-(h21+h22)
         ! compute the diffusive terms
-        h11 = mu*(u(ip,j)-2.d0*u(i,j)+u(im,j))*ddxi
-        h12 = mu*(u(i,jp)-2.d0*u(i,j)+u(i,jm))*ddyi
-        h21 = mu*(v(ip,j)-2.d0*v(i,j)+v(im,j))*ddxi
-        h22 = mu*(v(i,jp)-2.d0*v(i,j)+v(i,jm))*ddyi
-        rhsu(i,j)=rhsu(i,j)+(h11+h12)*rhoi
-        rhsv(i,j)=rhsv(i,j)+(h21+h22)*rhoi
-        ! add buoyancy term
-        #if tempflag == 1
-        rhsv(i,j)=rhsv(i,j) + alphag/rho*0.5d0*(temp(i,j) + temp(i,jm)) !interpolated at v location
-        #endif
-        ! channel pressure driven (along x)
-        !rhsu(i,j)=rhsu(i,j) + 1.d0
-        ! add old pressure (not required?)
-        !rhsu(i,j)=rhsu(i,j) - rhoi*(pold(i,j)-pold(im,j))*dxi
-        !rhsv(i,j)=rhsv(i,j) - rhoi*(pold(i,j)-pold(i,jm))*dyi
+        h11 = mul*(u(ip,j)-2.d0*u(i,j)+u(im,j))*ddxi
+        h12 = mul*(u(i,jp)-2.d0*u(i,j)+u(i,jm))*ddyi
+        h21 = mul*(v(ip,j)-2.d0*v(i,j)+v(im,j))*ddxi
+        h22 = mul*(v(i,jp)-2.d0*v(i,j)+v(i,jm))*ddyi
+        rhsu(i,j)=rhsu(i,j)+(h11+h12)
+        rhsv(i,j)=rhsv(i,j)+(h21+h22)
       enddo
     enddo
     !$acc end kernels
 
-    ! Compute surface tension forces (LCSF mehthod, see Assessment of an energy-based surface tension model for simulation of...)
     #if phiflag == 1
     !$acc kernels
     do j=1,ny
@@ -342,8 +340,8 @@ do t=tstart,tfin
         if (ip .gt. nx) ip=1
         if (im .lt. 1) im=nx
         curv=0.5d0*(normx(ip,j)-normx(im,j))*dxi + 0.5d0*(normy(i,jp)-normy(i,jm))*dyi
-        fxst(i,j)= -sigma*curv*0.5d0*(phi(ip,j)-phi(im,j))*dxi!*phi(i,j)*(1.d0-phi(i,j))
-        fyst(i,j)= -sigma*curv*0.5d0*(phi(i,jp)-phi(i,jm))*dyi!*phi(i,j)*(1.d0-phi(i,j))
+        fxst(i,j)= -sigma*curv*0.5d0*(phi(ip,j)-phi(im,j))*dxi
+        fyst(i,j)= -sigma*curv*0.5d0*(phi(i,jp)-phi(i,jm))*dyi
       enddo
     enddo
     !$acc end kernels
@@ -355,14 +353,14 @@ do t=tstart,tfin
         im=i-1
         jm=j-1
         if (im .lt. 1) im=nx
-        rhsu(i,j)=rhsu(i,j) + 0.5d0*(fxst(im,j)+fxst(i,j))*rhoi
-        rhsv(i,j)=rhsv(i,j) + 0.5d0*(fyst(i,jm)+fyst(i,j))*rhoi
+        rhsu(i,j)=rhsu(i,j) + 0.5d0*(fxst(im,j)+fxst(i,j))
+        rhsv(i,j)=rhsv(i,j) + 0.5d0*(fyst(i,jm)+fyst(i,j))
       enddo
     enddo
     !$acc end kernels
     #endif
 
-    ! find u, v and w star (AB2), overwrite u,v and w
+    ! find u, v and w star (RK3), overwrite u,v
     !$acc kernels
     do j=1,ny
       do i=1,nx
@@ -374,13 +372,16 @@ do t=tstart,tfin
     enddo
     !$acc end kernels
 
+
     !impose BCs on the flow field
     !$acc kernels
     do i=1,nx
+      ! bottom wall (no-slip)
       u(i,0)=    -u(i,1)
-      u(i,ny+1)= -u(i,ny)
-      v(i,1)=0.0d0
-      v(i,ny+1)=0.0d0
+      v(i,1)= 0.d0
+      ! top wall (outlet)
+      u(i,ny+1)=  u(i,ny)
+      v(i,ny+1)=v(i,ny)
     enddo
     !$acc end kernels
 
@@ -393,8 +394,9 @@ do t=tstart,tfin
       ip=i+1
       jp=j+1
       if (ip .gt. nx) ip=1
-      rhsp(i,j) =             (rho*dxi/dt)*(u(ip,j)-u(i,j))
-      rhsp(i,j) = rhsp(i,j) + (rho*dyi/dt)*(v(i,jp)-v(i,j))
+      rhsp(i,j) =             (dxi/dt)*(u(ip,j)-u(i,j))
+      rhsp(i,j) = rhsp(i,j) + (dyi/dt)*(v(i,jp)-v(i,j))
+      rhsp(i,j) = rhsp(i,j) - melt(i,j)*(1.d0/rhov-1.d0/rhol)
     enddo
   enddo
   !$acc end kernels
@@ -479,12 +481,12 @@ do t=tstart,tfin
     do j=1,ny
       im=i-1
       if (im < 1) im=nx
-      u(i,j)=u(i,j) - dt*rhoi*(p(i,j)-p(im,j))*dxi
+      u(i,j)=u(i,j) - dt*(p(i,j)-p(im,j))*dxi
     enddo
     ! correct v (all inner nodes), no need on the node at the faces (BC)
     do j=2,ny
       jm=j-1
-      v(i,j)=v(i,j) - dt*rhoi*(p(i,j)-p(i,jm))*dyi
+      v(i,j)=v(i,j) - dt*(p(i,j)-p(i,jm))*dyi
     enddo
   enddo
   !$acc end kernels
@@ -494,7 +496,7 @@ do t=tstart,tfin
   write(*,*) "CFL number:", max(cflx,cfly)
   write(*,*) "Nusselt (top, bottom)", nut, nub
 
-  ! re-impose BCs on the flow field
+  ! re-impose BCs on the flow field, not required in theory
   umax=0.d0
   vmax=0.d0
   !$acc parallel loop collapse(1) reduction(+:umax,vmax)

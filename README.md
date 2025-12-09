@@ -2,7 +2,7 @@
 Version of MHIT36 simpliefied to work in 2D (single GPU version)
 Numerical scheme: Finite difference-based (FD2).
 Time integration:
-- Temperature: SSP-RK3 + CN for Temperature along y (flag)
+- Temperature: SSP-RK3 
 - Navier-Stokes: RK3
 - Phase-field: RK3 (to be implemented)
 - NS: Fractional method, Poisson solver based on FFT (along x - periodic) + TDMA (y, walls).
@@ -43,8 +43,6 @@ If you use this code, please cite the following works:
 ```
 
 
-
-
 ## Check list of features implemented (or to be implemented)
 
 - Poisson solver (Matlab) ✅
@@ -63,21 +61,6 @@ If you use this code, please cite the following works:
 - RB setup ✅ 
 - GPU offloading of entire code  ✅
 - TDMA optimization (x 10 speed-up)  ✅
-
-## Validation  
-- Aspect ratio: 2
-- Ra from 1e3 to 1e9 + Pr=1
-- Grid: 512 x 256
-
-![Test](doc/val.png)
-
-## Example of single-phase RBC (Ra=1e9 + Pr=1)
-
-![Test](doc/rbc6.png)
-
-## Example of multiphase RBC (Ra=1e7 + Pr=1)
-
-![Test](doc/rbc5.png)
 
 ## Performance and resolution tested
 
