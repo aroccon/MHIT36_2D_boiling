@@ -8,7 +8,7 @@ module param
   double precision :: pos, epsr, times, timef, difftemp, h11, h12, h21, h22, rhoi, alphag
   double precision :: ttop, tbot, vaprate
   double precision :: rhop, rhom, rhol, rhov
-  double precision :: mul, muv
+  double precision :: mul, muv, grav
   integer :: tstart, tfin, restart, dump, icphi
 end module param
 

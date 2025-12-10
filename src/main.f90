@@ -325,6 +325,8 @@ do t=tstart,tfin
         h22 = mul*(v(i,jp)-2.d0*v(i,j)+v(i,jm))*ddyi
         rhsu(i,j)=rhsu(i,j)+(h11+h12)
         rhsv(i,j)=rhsv(i,j)+(h21+h22)
+        ! compute buoyancy term
+        rhsv(i,j)=rhsv(i,j) + (rhol-rhov)*grav*0.5d0*(phi(i,j)+phi(i,jm))
       enddo
     enddo
     !$acc end kernels
@@ -490,6 +492,8 @@ do t=tstart,tfin
     enddo
   enddo
   !$acc end kernels
+
+  
 
   cflx=umax*dt*dxi
   cfly=vmax*dt*dyi
