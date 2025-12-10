@@ -36,21 +36,21 @@ endif
 if (fieldn .eq. 3) then
 write(namefile,'(a,i8.8,a)') './output/p_',t,'.dat'
 open(unit=55,file=namefile,form='unformatted',position='append',access='stream',status='new')
-write(55) p
+write(55) p(:,1:ny)
 close(55)
 endif
 
 if (fieldn .eq. 4) then
 write(namefile,'(a,i8.8,a)') './output/phi_',t,'.dat'
 open(unit=55,file=namefile,form='unformatted',position='append',access='stream',status='new')
-write(55) phi
+write(55) phi(:,1:ny)
 close(55)
 endif
 
 if (fieldn .eq. 5) then
 write(namefile,'(a,i8.8,a)') './output/t_',t,'.dat'
 open(unit=55,file=namefile,form='unformatted',position='append',access='stream',status='new')
-write(55) temp
+write(55) temp(:,1:ny)
 close(55)
 endif
 end subroutine

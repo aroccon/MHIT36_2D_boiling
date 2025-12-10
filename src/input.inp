@@ -1,15 +1,18 @@
 0           ! fresh start=0 restart =1
 0           ! iteration to start from (fresh start 0 otherwise different)
-800000      ! Final time step
-2000        ! Saving frequency
+10          ! Final time step
+10          ! Saving frequency
 1.5         ! dt for the simulation
-1.36        ! density
-0.1666      ! viscosity
-5.e-5       ! alphag
-1.000       ! pr
-2048        ! lx
-1024        ! ly
-1           ! Initial condition phase-field (one drop or read from file)
+1.36        ! density liquid
+1.36        ! density vapor
+0.1666      ! viscosity liquid
+0.1666      ! viscosity vapor     
+0.          ! vaporization rate
+0.          ! alphag
+0.1666      ! difftemp
+1.           ! lx
+4.          ! ly
+0           ! Initial condition phase-field (one drop or read from file)
 0.4         ! Initial drop radius for phase-field
-0.0325      ! Surface tension
+0.d0        ! Surface tension
 1.0         ! Ratio eps/dx

@@ -19,7 +19,7 @@ read(55,*) muv
 read(55,*) vaprate
 ! temperature parameters
 read(55,*) alphag
-read(55,*) pr
+read(55,*) difftemp
 read(55,*) lx
 read(55,*) ly
 ! phase-field parameters
@@ -32,7 +32,7 @@ read(55,*) epsr
 
 ! compute pre-defined constant 
 twopi=2.d0*pi 
-difftemp=mu/pr
+difftemp=mul/pr
 !difftemp=sqrt(pr/ra)! sqrt(Ra) with Ra=2e6 
 !mu=sqrt(1.d0/ra) ! sqrt(1/Ra) with Ra=2e6 
 dx = lx/nx
@@ -41,7 +41,6 @@ dxi=1.d0/dx
 ddxi=1.d0/dx/dx
 dyi=1.d0/dy
 ddyi=1.d0/dy/dy
-rhoi=1.d0/rho
 eps=epsr*min(dx,dy)
 epsi=1.d0/eps
 enum=1.e-16
@@ -59,11 +58,13 @@ write(*,*) "------------------2D Setup--------------------"
 write(*,*) "Grid:    ", nx, 'x', ny
 write(*,*) "Tfin     ", tfin
 write(*,*) "Dump        ", dump
-write(*,*) "Density      ", rho
-write(*,*) "Viscosity      ", mu
+write(*,*) "Density liquid     ", rhol
+write(*,*) "Density vapor     ", rhov
+write(*,*) "Viscosity  liquid    ", mul
+write(*,*) "Viscosity  vapor     ", muv
+write(*,*) "Vaporization rate   ", vaprate
 write(*,*) "Alphag        ", alphag
-write(*,*) "Prandtl        ", pr
-write(*,*) "Difftemp (from Pr)", difftemp
+write(*,*) "Diff temp        ", difftemp
 write(*,*) "Radius          ", radius
 write(*,*) "Sigma          ", sigma
 write(*,*) "Eps             ", eps

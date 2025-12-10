@@ -2,15 +2,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-nx, ny = 512, 256
+nx, ny = 128, 512
 
 #data = np.fromfile('out.dat', dtype=np.float64)  # or float64
-data = np.fromfile('output/phi_00010000.dat', dtype=np.float64)  # or float64
+data = np.fromfile('output/phi_00000000.dat', dtype=np.float64)  # or float64
 print("Data size:", data.size)
 data = data.reshape((ny, nx))  # rows = y, columns = x
 
 plt.figure(figsize=(8,7))
-plt.imshow(data, cmap='jet', origin='lower', aspect='1.1')
+plt.imshow(data, cmap='jet', origin='lower', aspect='1.0')
 plt.colorbar(label='Temperature')
 plt.xlabel('x')
 plt.ylabel('y')

@@ -55,8 +55,8 @@ allocate(af(nx,0:ny+1),bf(nx,0:ny+1),cf(nx,0:ny+1),df(nx,0:ny+1),solf(nx,0:ny+1)
 ! add 0:ny+1, i.e. ghost nodes also for phi?
 allocate(phi(nx,0:ny+1),rhsphi(nx,0:ny+1),psidi(nx,0:ny+1))
 allocate(normx(nx,0:ny+1),normy(nx,0:ny+1))
-allocate(fxst(nx,ny),fyst(nx,ny))
-allocate(melt(nx,ny))
+allocate(fxst(nx,0:ny+1),fyst(nx,0:ny+1))
+allocate(melt(nx,0:ny+1))
 
 ! temperature variables (defined on centers)
 allocate(temp(nx,0:ny+1),rhstemp(nx,0:ny+1),rhstemp_o(nx,0:ny+1))
@@ -111,8 +111,8 @@ enddo
 if (icphi .eq. 0) then
   do i=1,nx
     do j=1,ny
-      pos=(x(i)-lx/2)**2d0 + (y(j)-ly/2)**2d0
-      phi(i,j)=0.5d0*(1.d0-tanh((sqrt(pos)-radius)/(2.d0*eps)))
+      pos = 2.0d0 + 0.1d0*cos(twopi*x(i)/lx)
+      phi(i,j) = 0.5d0 * ( 1.0d0 - tanh( (y(j) - pos) / (2.0d0*eps) ) )
     enddo
   enddo
 endif
@@ -215,7 +215,7 @@ do t=tstart,tfin
   enddo
   ! boiling term
   do i=1,nx
-    do j=1:ny
+    do j=1,ny
         melt(i,j) = phi(i,j)*(1-phi(i,j))/eps*vaprate*rhov;
         rhsphi(i,j)= rhsphi(i,j) + melt(i,j)/rhov/rhov;
     enddo
@@ -300,21 +300,21 @@ do t=tstart,tfin
         if (ip .gt. nx) ip=1
         if (im .lt. 1) im=nx
         ! h11
-        rhoxp=rhol*phi(i,j)    + rhov*(1.d0-phi(i,j))
-        rhoxm=rhol*phi(im,j)   + rhov*(1.d0-phi(im,j))
-        h11 = 0.25d0*(rhoxp*(u(ip,j)+u(i,j))*(u(ip,j)+u(i,j))     - rhoxm*(u(i,j)+u(im,j))*(u(i,j)+u(im,j)))*dxi
+        rhop=rhol*phi(i,j)    + rhov*(1.d0-phi(i,j))
+        rhom=rhol*phi(im,j)   + rhov*(1.d0-phi(im,j))
+        h11 =     0.25d0*(rhop*(u(ip,j)+u(i,j))*(u(ip,j)+u(i,j))    - rhom*(u(i,j)+u(im,j))*(u(i,j)+u(im,j)))*dxi
         ! h12
-        rhoxp=rhol*0.25d0*(phi(i,j)+phi(im,j)+phi(i,jp)+phi(im,jp))   + rhov*(1.d0-0.25d0*(phi(i,j)+phi(im,j)+phi(i,jp)+phi(im,jp)))
-        rhoxm=rhol*0.25d0*(phi(i,j)+phi(im,j)+phi(i,jm)+phi(im,jm))   + rhov*(1.d0-0.25d0*(phi(i,j)+phi(im,j)+phi(i,jm)+phi(im,jm)))
-        h12 = 0.25d0*(rhoxp*(u(i,jp)+u(i,j))*(v(i,jp)+v(im,jp))   - rhoxm*(u(i,j)+u(i,jm))*(v(i,j)+v(im,j)))*dyi
+        rhop=rhol*0.25d0*(phi(i,j)+phi(im,j)+phi(i,jp)+phi(im,jp))  + rhov*(1.d0-0.25d0*(phi(i,j)+phi(im,j)+phi(i,jp)+phi(im,jp)))
+        rhom=rhol*0.25d0*(phi(i,j)+phi(im,j)+phi(i,jm)+phi(im,jm))  + rhov*(1.d0-0.25d0*(phi(i,j)+phi(im,j)+phi(i,jm)+phi(im,jm)))
+        h12 =     0.25d0*(rhop*(u(i,jp)+u(i,j))*(v(i,jp)+v(im,jp))  - rhom*(u(i,j)+u(i,jm))*(v(i,j)+v(im,j)))*dyi
         ! h21        
-        rhoxp=rhol*0.25d0*(phi(i,j)+phi(i,jm)+phi(ip,j)+phi(ip,jm))   + rhov*(1.d0-0.25d0*(phi(i,j)+phi(i,jm)+phi(ip,j)+phi(ip,jm)))
-        rhoxm=rhol*0.25d0*(phi(i,j)+phi(i,jm)+phi(im,j)+phi(im,jm))   + rhov*(1.d0-0.25d0*(phi(i,j)+phi(i,jm)+phi(im,j)+phi(im,jm)))
-        h21 = 0.25d0*(rhoxp*(u(ip,j)+u(ip,jm))*(v(ip,j)+v(i,j))   - rhoxm*(u(i,j)+u(i,jm))*(v(i,j)+v(im,j)))*dxi
+        rhop=rhol*0.25d0*(phi(i,j)+phi(i,jm)+phi(ip,j)+phi(ip,jm))  + rhov*(1.d0-0.25d0*(phi(i,j)+phi(i,jm)+phi(ip,j)+phi(ip,jm)))
+        rhom=rhol*0.25d0*(phi(i,j)+phi(i,jm)+phi(im,j)+phi(im,jm))  + rhov*(1.d0-0.25d0*(phi(i,j)+phi(i,jm)+phi(im,j)+phi(im,jm)))
+        h21 =     0.25d0*(rhop*(u(ip,j)+u(ip,jm))*(v(ip,j)+v(i,j))  - rhom*(u(i,j)+u(i,jm))*(v(i,j)+v(im,j)))*dxi
         ! h22
-        rhoxp=rhol*phi(i,j)    + rhov*(1.d0-phi(i,j))
-        rhoxm=rhol*phi(i,jm)   + rhov*(1.d0-phi(i,jm))
-        h22 = 0.25d0*(rhoxp*(v(i,jp)+v(i,j))*(v(i,jp)+v(i,j))     - rhoxm*(v(i,j)+v(i,jm))*(v(i,j)+v(i,jm)))*dyi
+        rhop=rhol*phi(i,j)    + rhov*(1.d0-phi(i,j))
+        rhom=rhol*phi(i,jm)   + rhov*(1.d0-phi(i,jm))
+        h22 =       0.25d0*(rhop*(v(i,jp)+v(i,j))*(v(i,jp)+v(i,j))  - rhom*(v(i,j)+v(i,jm))*(v(i,j)+v(i,jm)))*dyi
         ! add advection to the rhs
         rhsu(i,j)=-(h11+h12)
         rhsv(i,j)=-(h21+h22)
