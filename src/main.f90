@@ -112,7 +112,7 @@ if (icphi .eq. 0) then
   do i=1,nx
     do j=1,ny
       pos = 2.0d0 + 0.1d0*cos(twopi*x(i)/lx)
-      phi(i,j) = 0.5d0 * ( 1.0d0 - tanh( (y(j) - pos) / (2.0d0*eps) ) )
+      phi(i,j) = 0.5d0 * ( 1.0d0 - tanh((y(j) - pos) / (2.0d0*eps) ) )
     enddo
   enddo
 endif
@@ -326,7 +326,7 @@ do t=tstart,tfin
         rhsu(i,j)=rhsu(i,j)+(h11+h12)
         rhsv(i,j)=rhsv(i,j)+(h21+h22)
         ! compute buoyancy term
-        rhsv(i,j)=rhsv(i,j) + (rhol-rhov)*grav*0.5d0*(phi(i,j)+phi(i,jm))
+        rhsv(i,j)=rhsv(i,j) + (rhol-rhov)*grav*(1.d0-0.5d0*(phi(i,j)+phi(i,jm)))
       enddo
     enddo
     !$acc end kernels
@@ -479,7 +479,7 @@ do t=tstart,tfin
   !##########################################################
   !$acc kernels
   do i=1,nx
-    ! correct u (all inner nodes)
+    ! correct rho*u (all inner nodes)
     do j=1,ny
       im=i-1
       if (im < 1) im=nx
@@ -493,6 +493,20 @@ do t=tstart,tfin
   enddo
   !$acc end kernels
 
+  ! Divide by density to get velocity
+  !$acc kernels
+  do i=1,nx
+    do j=1,ny
+      im=i-1
+      jm=j-1
+      if (im < 1) im=nx
+      rhop=rhol*0.5d0*(phi(im,j) + phi(i,j))   + rhov*(1.d0-0.5d0*(phi(im,j) + phi(i,j)))
+      u(i,j)=u(i,j)/rhop
+      rhop=rhol*0.5d0*(phi(i,jm) + phi(i,j))   + rhov*(1.d0-0.5d0*(phi(i,jm) + phi(i,j)))
+      v(i,j)=v(i,j)/rhop
+    enddo
+  enddo
+  !$acc end kernels
   
 
   cflx=umax*dt*dxi
